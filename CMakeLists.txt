@@ -4,4 +4,4 @@ project(mp2-lab3-arithmetic-expression)
 
 include_directories(include)
 
-add_executable(mp2-lab3-arithmetic-expression src/main.cpp src/expressions.cpp include/expressions.hpp)
+add_executable(mp2-lab3-arithmetic-expression src/main.cpp include/expressions.hpp)
