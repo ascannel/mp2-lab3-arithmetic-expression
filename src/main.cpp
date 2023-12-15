@@ -1,17 +1,19 @@
 #include <iostream>
-#include <vector>
-#include <string>
-#include <stack>
 #include "expressions.hpp"
 
 using namespace std;
 
 int main() {
+	cout << "input expression: ";
 	string input;
-	cout << "input expression : ";
 	cin >> input;
-	vector<Lexeme> parsed = parse(input);
-	vector<Lexeme> postfix = postfixForm(parsed);
-	double res = countUp(postfix);
-	cout << "\nresult: ";
+	try {
+		vector<Lexeme> parsed = parse(input);
+		vector<Lexeme> postfix = postfixForm(parsed);
+		double res = countUp(postfix);
+		cout << "\nresult: " << res;
+	}
+	catch (const char* s) {
+		cout << "incorrect input: " << s << "\n";
+	}
 }

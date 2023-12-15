@@ -44,14 +44,8 @@ public:
 	Priority priority;
 	double value;
 	Lexeme() { type = TypeLexeme::blank; value = 0; priority = Priority::blank; }
-	Lexeme(TypeLexeme input_type, double input_value, Priority input_priority) {}
+	Lexeme(TypeLexeme input_type, double input_value, Priority input_priority) : type(input_type), value(input_value), priority(input_priority) {}
 	~Lexeme() {}
-
-	TypeLexeme getType(char symbol, Status status);
-	Lexeme nextLexeme(string input, int& index, Status status);
-	vector<Lexeme> parse(string input);
-	vector<Lexeme> postfixForm(vector<Lexeme> input);
-	double countUp(vector<Lexeme> input);
 };
 
 TypeLexeme getType(char symbol, Status statusLexeme) {
@@ -73,7 +67,7 @@ TypeLexeme getType(char symbol, Status statusLexeme) {
 		return TypeLexeme::left_bracket;
 	else if (symbol == ')')
 		return TypeLexeme::right_bracket;
-	throw -1;
+	throw "error when getting lexeme type";
 }
 
 Lexeme nextLexeme(string input, int& index, Status statusLexeme) {
@@ -101,7 +95,7 @@ Lexeme nextLexeme(string input, int& index, Status statusLexeme) {
 		return Lexeme(TypeLexeme::left_bracket, 0, Priority::brackets);
 	else if (symbol == ')')
 		return Lexeme(TypeLexeme::right_bracket, 0, Priority::brackets);
-	throw -1;
+	throw "error when getting next lexeme";
 }
 
 vector<Lexeme> postfixForm(vector<Lexeme> input) {
@@ -138,56 +132,102 @@ vector<Lexeme> postfixForm(vector<Lexeme> input) {
 	return res;
 }
 
-std::vector<Lexeme> parse(std::string input) {
+vector<Lexeme> parse(std::string input)
+{
 	vector<Lexeme> res;
 	Status statusLexeme = Status::start;
-	int leftBracketCounter = 0, rightBracketCounter = 0;
-	for (int i = 0; i < input.size(); i++) {
+	size_t leftBracketCounter = 0, rightBracketCounter = 0;
+	for (int i = 0; i < input.size(); i++)
+	{
 		if (rightBracketCounter > leftBracketCounter)
-			throw -1;
-		else {
-			Lexeme currLex = nextLexeme(input, i, statusLexeme);
-			TypeLexeme currType = currLex.type;
-			if (statusLexeme == Status::start || statusLexeme == Status::left_bracket) {
-				if (currType == TypeLexeme::number)
-					statusLexeme = Status::number;
-				else if (currType == TypeLexeme::un_minus)
-					statusLexeme = Status::un_op;
-				else if (currType == TypeLexeme::left_bracket) {
-					statusLexeme = Status::left_bracket;
-					leftBracketCounter++;
-				}
-				else if (statusLexeme == Status::start && i == input.size() - 1)
-					throw "Nothing entered!";
-				else throw "Incorrect input!";
+			throw "invalid brackets";
+
+		Lexeme currLex = nextLexeme(input, i, statusLexeme);
+		TypeLexeme currType = currLex.type;
+		if (statusLexeme == Status::start || statusLexeme == Status::left_bracket)
+		{
+			switch (currType)
+			{
+			case TypeLexeme::number:
+				statusLexeme = Status::number;
+				break;
+			case TypeLexeme::bin_plus:
+				break;
+			case TypeLexeme::bin_minus:
+				break;
+			case TypeLexeme::bin_mult:
+				break;
+			case TypeLexeme::bin_div:
+				break;
+			case TypeLexeme::pow:
+				break;
+			case TypeLexeme::un_minus:
+				statusLexeme = Status::un_op;
+				break;
+			case TypeLexeme::left_bracket:
+				statusLexeme = Status::left_bracket;
+				leftBracketCounter++;
+				break;
+			case TypeLexeme::right_bracket:
+				break;
+			default:
+				if (statusLexeme == Status::start && i == input.size() - 1)
+					throw "nothing inputed";
+				throw "error with parsing";
 			}
-			else if (statusLexeme == Status::number || statusLexeme == Status::right_bracket) {
-				if (currType == TypeLexeme::bin_minus || currType == TypeLexeme::bin_plus || currType == TypeLexeme::bin_mult || currType == TypeLexeme::bin_div || currType == TypeLexeme::pow)
-					statusLexeme = Status::bin_op;
-				else if (currType == TypeLexeme::right_bracket) {
-					statusLexeme = Status::right_bracket;
-					rightBracketCounter++;
-				}
-				else if (i == input.size() - 1 && leftBracketCounter == rightBracketCounter)
-					statusLexeme = Status::end;
-				else throw "Incorrect input!";
-			}
-			else if (statusLexeme == Status::un_op || statusLexeme == Status::bin_op) {
-				if (currType == TypeLexeme::number)
-					statusLexeme = Status::number;
-				else if (currType == TypeLexeme::left_bracket) {
-					statusLexeme = Status::left_bracket;
-					leftBracketCounter++;
-				}
-				else throw "Incorrect input!";
-			}
-			res.push_back(currLex);
 		}
+		else if (statusLexeme == Status::number || statusLexeme == Status::right_bracket)
+		{
+			switch (currType)
+			{
+			case TypeLexeme::bin_plus:
+				statusLexeme = Status::bin_op;
+				break;
+			case TypeLexeme::bin_minus:
+				statusLexeme = Status::bin_op;
+				break;
+			case TypeLexeme::bin_mult:
+				statusLexeme = Status::bin_op;
+				break;
+			case TypeLexeme::bin_div:
+				statusLexeme = Status::bin_op;
+				break;
+			case TypeLexeme::pow:
+				statusLexeme = Status::bin_op;
+				break;
+			case TypeLexeme::right_bracket:
+				statusLexeme = Status::right_bracket;
+				rightBracketCounter++;
+				break;
+			default:
+				if (i == input.size() - 1 && leftBracketCounter == rightBracketCounter)
+					statusLexeme = Status::end;
+				else
+					throw "incorrect input!";
+				break;
+			}
+		}
+		else if (statusLexeme == Status::un_op || statusLexeme == Status::bin_op)
+		{
+			switch (currType)
+			{
+			case TypeLexeme::number:
+				statusLexeme = Status::number;
+				break;
+			case TypeLexeme::left_bracket:
+				statusLexeme = Status::left_bracket;
+				leftBracketCounter++;
+				break;
+			default:
+				throw "incorrect input!";
+			}
+		}
+		res.push_back(currLex);
 	}
 	if (leftBracketCounter != rightBracketCounter)
-		throw "Incorrect input! Check brackets!";
+		throw "invalid brackets";
 	if (statusLexeme != Status::number && statusLexeme != Status::right_bracket && statusLexeme != Status::end)
-		throw "Incorrect input! Incorrect end!";
+		throw "invalid end";
 	return res;
 }
 
@@ -210,7 +250,7 @@ double countUp(vector<Lexeme> postfix) {
 				temp = a * b;
 			else if (item.type == TypeLexeme::bin_div) {
 				if (a == 0)
-					throw "Division by 0!";
+					throw "can't divide to 0";
 				else
 					temp = b / a;
 			}
